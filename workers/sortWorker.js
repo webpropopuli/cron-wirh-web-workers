@@ -1,9 +1,9 @@
-const addRandoms = passes => {
+const sortNames = names => {
   let total = 0;
 
   // start Worker
   var Worker = require("solid-worker");
-  let worker = new Worker("getNRandoms.js");
+  let worker = new Worker("sortNames.js");
 
   // send number of passes to worker (also send min and max)
   worker.postMessage({ passes: passes, min: 0, max: 100 });
@@ -15,4 +15,4 @@ const addRandoms = passes => {
   };
 };
 
-module.exports = addRandoms;
+module.exports = sortNames;

@@ -1,16 +1,34 @@
 const express = require("express");
 const router = express.Router();
 
+const cp = require("child_process");
+
 // @route GET /api/practice
 router.get(`/`, (req, res) => res.json({ status: `"Yippee at api/practice` }));
 
 //! sorter
-const sortNames = require(`../../workers/sortWorker`);
-const names = [];
-// router.post(`/sort/:num`, (req, res) => {
-//   sortNames(names));
-//   res.json({ status: `Started sorter` });
-// });
+let child = null;
+router.post(`/sort`, (req, res) => {
+  const sortNames = require(`../../workers/sorting/sortWorker`);
+  const names = [`Fred`, `Wilma`, `Barney`, `Betty`, `Dino`];
+
+  // Start the child process
+  child = cp.fork(`sortNames.js`, names, { cwd: `./sorting` });
+  console.log(`:api/practice/sort --> Sorter started`);
+
+  // Process incoming messages
+  child
+    .on("exit", () => {
+      clearInterval(interval);
+      console.log(`PARENT--> All done`);
+    })
+    .on("message", msg => {
+      console.log(`Sorted array received--> ${msg}`);
+      this.stop();
+    });
+
+  res.json({ status: `Started sorter` });
+});
 
 //!start - catch missing parameters
 router.get("/start", (req, res) => {
@@ -22,12 +40,12 @@ router.get("/start", (req, res) => {
 let dogPound = []; // where barkers live
 
 //! create and start barker
-const worker = require(`../../workers/barkWorker`);
+const worker = require(`../../workers/barking/barkWorker`);
 router.get("/start/:interval", (req, res) => {
   let interval = parseInt(req.params.interval, 10);
   let thisDog = {
     name: `Dog${interval}`,
-    worker: require(`../../workers/barkWorker`)
+    worker: require(`../../workers/barking/barkWorker`)
   };
 
   thisDog.worker.interval = interval;
